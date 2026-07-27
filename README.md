@@ -6,24 +6,24 @@
 
 ## Overview
 
-Neurodegenerative diseases (NDs) such as Alzheimer's disease (AD), Parkinson's disease (PD), and Amyotrophic Lateral Sclerosis (ALS) share several pathogenic mechanisms despite their distinct clinical presentations. Among these, oxidative stress is recognized as a major contributor to neuronal dysfunction, mitochondrial impairment, and progressive neurodegeneration. Identifying oxidative stress-related genes that are consistently dysregulated across multiple neurodegenerative diseases may improve our understanding of shared disease mechanisms and highlight candidate biomarkers for future diagnostic and therapeutic research.
+Oxidative stress is a central mechanism implicated in the pathogenesis of Alzheimer's disease (AD), Parkinson's disease (PD), and Amyotrophic Lateral Sclerosis (ALS). Although these disorders differ in their clinical manifestations, they share molecular alterations associated with redox imbalance, mitochondrial dysfunction, impaired antioxidant defenses, and progressive neuronal loss. Identifying oxidative stress-related genes that are consistently dysregulated across these diseases may improve our understanding of shared pathogenic mechanisms and facilitate the discovery of broadly applicable biomarkers.
 
 This repository contains the complete R-based computational workflow developed for the transcriptomic meta-analysis accompanying the manuscript **"Cross-Disease Oxidative Stress Biomarker Discovery in Neurodegenerative Diseases."** The pipeline integrates publicly available transcriptomic datasets from the NCBI Gene Expression Omnibus (GEO), performs differential expression analyses within individual studies, combines evidence through meta-analysis, and identifies oxidative stress-related genes that are consistently altered across AD, PD, and ALS.
 
-The repository emphasizes transparency and reproducibility by providing the complete analysis pipeline used to generate the processed results, publication-ready figures, and summary tables reported in the accompanying manuscript.
+All analyses, figures, and tables reported in the manuscript can be reproduced using the scripts provided in this repository.
 
 ---
 
-## Objectives
+## Study Summary
 
-The primary objectives of this project are to:
-
-* Identify oxidative stress-related differentially expressed genes in AD, PD, and ALS.
-* Integrate transcriptomic evidence across multiple independent GEO studies.
-* Perform cross-disease transcriptomic meta-analysis.
-* Prioritize conserved oxidative stress biomarkers across neurodegenerative diseases.
-* Generate publication-ready figures and summary tables.
-* Provide a fully reproducible computational workflow.
+| Feature                  | Description                                                                                         |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| **Diseases**             | Alzheimer's disease (AD), Parkinson's disease (PD), Amyotrophic Lateral Sclerosis (ALS)             |
+| **Data source**          | NCBI Gene Expression Omnibus (GEO)                                                                  |
+| **Datasets analyzed**    | 9 disease-specific transcriptomic datasets                                                          |
+| **Programming language** | R (v4.6 or later)                                                                                   |
+| **Primary analyses**     | Differential expression analysis, transcriptomic meta-analysis, cross-disease biomarker integration |
+| **Primary outcome**      | Identification of conserved oxidative stress biomarkers across neurodegenerative diseases           |
 
 ---
 
@@ -31,29 +31,13 @@ The primary objectives of this project are to:
 
 ```text
 OxStress_MetaAnalysis_Repository/
-
-├── Data/
-│   ├── Raw/
-│   ├── Processed/
-│   └── GeneLists/
 │
-├── Functions/
-│   ├── io_functions.R
-│   ├── expression_functions.R
-│   └── stats_functions.R
-│
-├── Scripts/
-│   ├── 00_config.R
-│   ├── 00_run_all.R
-│   ├── 01_data_download.R
-│   ├── 02_preprocessing.R
-│   ├── 03_differential_expression.R
-│   ├── 04_meta_analysis.R
-│   ├── 05_cross_disease.R
-│   └── 06_figures.R
-│
-├── Results/
-├── Logs/
+├── Data/          # Raw, processed, and gene list files
+├── Functions/     # Reusable R functions
+├── Scripts/       # Complete analysis pipeline
+├── Results/       # Generated figures, tables, and outputs
+├── Logs/          # Analysis logs
+├── .gitignore
 └── README.md
 ```
 
@@ -93,38 +77,23 @@ Figure & Table Generation
 
 ## Datasets
 
-The analysis uses publicly available transcriptomic datasets obtained from the NCBI Gene Expression Omnibus (GEO).
+The transcriptomic meta-analysis was performed using **nine disease-specific datasets** obtained from the NCBI Gene Expression Omnibus (GEO).
 
-| Disease                       | GEO Accession      |
-| ----------------------------- | ------------------ |
-| Alzheimer's disease           | GSE5281, GSE63061  |
-| Parkinson's disease           | GSE6613, GSE8397   |
-| Amyotrophic Lateral Sclerosis | GSE67196, GSE76220 |
-
----
-
-## Software Requirements
-
-The workflow was developed in **R (version 4.6 or later)** using Bioconductor and CRAN packages, including:
-
-* GEOquery
-* limma
-* metafor
-* meta
-* tidyverse
-* data.table
-* ggplot2
-* pheatmap
-
-Package installation and configuration are handled through:
-
-```r
-source("Scripts/00_config.R")
-```
+| Disease                       | GEO Dataset           |
+| ----------------------------- | --------------------- |
+| Alzheimer's disease           | GSE5281               |
+| Alzheimer's disease           | GSE63061              |
+| Alzheimer's disease           | GSE26927 (AD subset)  |
+| Parkinson's disease           | GSE6613               |
+| Parkinson's disease           | GSE8397               |
+| Parkinson's disease           | GSE26927 (PD subset)  |
+| Amyotrophic Lateral Sclerosis | GSE67196              |
+| Amyotrophic Lateral Sclerosis | GSE76220              |
+| Amyotrophic Lateral Sclerosis | GSE26927 (ALS subset) |
 
 ---
 
-## Running the Analysis
+## Reproducing the Analysis
 
 Clone the repository:
 
@@ -132,17 +101,20 @@ Clone the repository:
 git clone https://github.com/gilwilliamsga-design/OxStress_MetaAnalysis_Repository.git
 ```
 
-Open the project in R or RStudio and execute the complete workflow:
+Open the project in R or RStudio and execute:
 
 ```r
+source("Scripts/00_config.R")
 source("Scripts/00_run_all.R")
 ```
+
+Executing the pipeline reproduces the processed results, publication-ready figures, and summary tables generated for the accompanying manuscript.
 
 ---
 
 ## Outputs
 
-Running the pipeline generates:
+The workflow generates:
 
 * Differential expression results
 * Transcriptomic meta-analysis results
@@ -155,15 +127,9 @@ Running the pipeline generates:
 
 ---
 
-## Reproducibility
-
-All analyses are performed using publicly available GEO datasets. Executing the analysis pipeline reproduces the processed results, figures, and tables presented in the accompanying manuscript.
-
----
-
 ## Citation
 
-If you use or adapt this workflow, please cite the associated manuscript. Citation details will be updated following publication.
+If you use this repository or adapt the analysis workflow, please cite the associated manuscript. Citation information will be updated following publication.
 
 ---
 
@@ -171,5 +137,7 @@ If you use or adapt this workflow, please cite the associated manuscript. Citati
 
 **Gil Williams Amana**
 
+Division of Genome and Molecular Science
+Helix Biogen Institute
 
 GitHub: https://github.com/gilwilliamsga-design
