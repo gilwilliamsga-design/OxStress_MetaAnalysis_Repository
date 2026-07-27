@@ -137,7 +137,5 @@ If you use this repository or adapt the analysis workflow, please cite the assoc
 
 **Gil Williams Amana**
 
-Division of Genome and Molecular Science
-Helix Biogen Institute
 
 GitHub: https://github.com/gilwilliamsga-design
