@@ -1,0 +1,22 @@
+# R session artifacts
+.RData
+.Rhistory
+.Rproj.user/
+
+# Large raw data (download via 01_data_download.R)
+Data/Raw/
+
+# Processed intermediates (regenerate via pipeline)
+Data/Processed/
+
+# Results (regenerate via pipeline)
+Results/Figures/
+Results/Tables/
+Results/MetaAnalysis/
+Results/QC/
+
+# Keep placeholder files
+!**/.gitkeep
+
+# Logs
+Logs/*.log
