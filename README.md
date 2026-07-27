@@ -1,93 +1,175 @@
-# Cross-Disease Meta-analysis of Oxidative Stress Genes in Neurodegenerative Diseases
+# Cross-Disease Oxidative Stress Biomarker Discovery in Neurodegenerative Diseases
 
-**Author:** Gil Williams Amana  
-**Version:** 1.0.0
+## A reproducible transcriptomic meta-analysis workflow for identifying conserved oxidative stress biomarkers across Alzheimer's disease, Parkinson's disease, and Amyotrophic Lateral Sclerosis
 
 ---
 
 ## Overview
 
-This project performs a transcriptomic meta-analysis of oxidative stress gene expression across three major neurodegenerative diseases:
+Neurodegenerative diseases (NDs) such as Alzheimer's disease (AD), Parkinson's disease (PD), and Amyotrophic Lateral Sclerosis (ALS) share several pathogenic mechanisms despite their distinct clinical presentations. Among these, oxidative stress is recognized as a major contributor to neuronal dysfunction, mitochondrial impairment, and progressive neurodegeneration. Identifying oxidative stress-related genes that are consistently dysregulated across multiple neurodegenerative diseases may improve our understanding of shared disease mechanisms and highlight candidate biomarkers for future diagnostic and therapeutic research.
 
-- **Alzheimer's Disease (AD)**
-- **Amyotrophic Lateral Sclerosis (ALS)**
-- **Parkinson's Disease (PD)**
+This repository contains the complete R-based computational workflow developed for the transcriptomic meta-analysis accompanying the manuscript **"Cross-Disease Oxidative Stress Biomarker Discovery in Neurodegenerative Diseases."** The pipeline integrates publicly available transcriptomic datasets from the NCBI Gene Expression Omnibus (GEO), performs differential expression analyses within individual studies, combines evidence through meta-analysis, and identifies oxidative stress-related genes that are consistently altered across AD, PD, and ALS.
 
-Data from nine GEO datasets are integrated, differentially expressed oxidative stress genes are identified per disease, and cross-disease candidate biomarkers are prioritised.
+The repository emphasizes transparency and reproducibility by providing the complete analysis pipeline used to generate the processed results, publication-ready figures, and summary tables reported in the accompanying manuscript.
+
+---
+
+## Objectives
+
+The primary objectives of this project are to:
+
+* Identify oxidative stress-related differentially expressed genes in AD, PD, and ALS.
+* Integrate transcriptomic evidence across multiple independent GEO studies.
+* Perform cross-disease transcriptomic meta-analysis.
+* Prioritize conserved oxidative stress biomarkers across neurodegenerative diseases.
+* Generate publication-ready figures and summary tables.
+* Provide a fully reproducible computational workflow.
 
 ---
 
 ## Repository Structure
 
-```
-OxStress_MetaAnalysis/
-├── README.md
-├── Scripts/
-│   ├── 00_config.R                    # Global settings, paths, thresholds
-│   ├── 01_data_download.R             # Download GEO datasets
-│   ├── 02_preprocessing.R             # Probe annotation, gene extraction, normalisation
-│   ├── 03_differential_expression.R   # limma DEA per dataset per disease
-│   ├── 04_meta_analysis.R             # Stouffer meta-analysis per disease
-│   ├── 05_cross_disease.R             # Cross-disease integration & biomarker ranking
-│   └── 06_figures.R                   # All publication figures
-├── Functions/
-│   ├── io_functions.R                 # File I/O helpers
-│   ├── expression_functions.R         # Extract, normalise, z-score
-│   └── stats_functions.R             # meta_stouffer(), make_deg_table()
+```text
+OxStress_MetaAnalysis_Repository/
+
 ├── Data/
-│   ├── Raw/                           # Downloaded GEO series matrix files
-│   ├── Processed/                     # Per-dataset expression matrices (.RData)
+│   ├── Raw/
+│   ├── Processed/
 │   └── GeneLists/
-│       └── antioxidant_genes.csv      # Curated oxidative stress gene set
+│
+├── Functions/
+│   ├── io_functions.R
+│   ├── expression_functions.R
+│   └── stats_functions.R
+│
+├── Scripts/
+│   ├── 00_config.R
+│   ├── 00_run_all.R
+│   ├── 01_data_download.R
+│   ├── 02_preprocessing.R
+│   ├── 03_differential_expression.R
+│   ├── 04_meta_analysis.R
+│   ├── 05_cross_disease.R
+│   └── 06_figures.R
+│
 ├── Results/
-│   ├── Figures/                       # PNG, TIFF, PDF, SVG outputs
-│   ├── Tables/                        # CSV result tables
-│   ├── MetaAnalysis/                  # Meta-analysis RData objects
-│   └── QC/                            # QC plots and logs
-└── Logs/
-    └── pipeline.log
+├── Logs/
+└── README.md
+```
+
+---
+
+## Analysis Workflow
+
+```text
+GEO Datasets
+      │
+      ▼
+Data Acquisition
+      │
+      ▼
+Quality Control & Preprocessing
+      │
+      ▼
+Differential Expression Analysis
+      │
+      ▼
+Oxidative Stress Gene Extraction
+      │
+      ▼
+Transcriptomic Meta-analysis
+      │
+      ▼
+Cross-Disease Integration
+      │
+      ▼
+Biomarker Prioritization
+      │
+      ▼
+Figure & Table Generation
 ```
 
 ---
 
 ## Datasets
 
-| GEO ID   | Disease    | Samples |
-|----------|------------|---------|
-| GSE5281  | AD         | 161     |
-| GSE63061 | AD         | 388     |
-| GSE26927 | AD/ALS/PD  | 118     |
-| GSE67196 | ALS        | 53      |
-| GSE76220 | ALS        | 21      |
-| GSE6613  | PD         | 105     |
-| GSE8397  | PD         | 47      |
+The analysis uses publicly available transcriptomic datasets obtained from the NCBI Gene Expression Omnibus (GEO).
+
+| Disease                       | GEO Accession      |
+| ----------------------------- | ------------------ |
+| Alzheimer's disease           | GSE5281, GSE63061  |
+| Parkinson's disease           | GSE6613, GSE8397   |
+| Amyotrophic Lateral Sclerosis | GSE67196, GSE76220 |
 
 ---
 
-## How to Run
+## Software Requirements
+
+The workflow was developed in **R (version 4.6 or later)** using Bioconductor and CRAN packages, including:
+
+* GEOquery
+* limma
+* metafor
+* meta
+* tidyverse
+* data.table
+* ggplot2
+* pheatmap
+
+Package installation and configuration are handled through:
 
 ```r
 source("Scripts/00_config.R")
-source("Scripts/01_data_download.R")
-source("Scripts/02_preprocessing.R")
-source("Scripts/03_differential_expression.R")
-source("Scripts/04_meta_analysis.R")
-source("Scripts/05_cross_disease.R")
-source("Scripts/06_figures.R")
 ```
 
 ---
 
-## Dependencies
+## Running the Analysis
+
+Clone the repository:
+
+```bash
+git clone https://github.com/gilwilliamsga-design/OxStress_MetaAnalysis_Repository.git
+```
+
+Open the project in R or RStudio and execute the complete workflow:
 
 ```r
-install.packages(c("tidyverse", "pheatmap", "VennDiagram", "ggplot2", "grid", "BiocManager"))
-BiocManager::install(c("GEOquery", "limma", "Biobase", "sva"))
+source("Scripts/00_run_all.R")
 ```
 
 ---
 
-## Key Findings
+## Outputs
 
-- **PRDX2** and **SOD1** were identified as shared oxidative stress biomarkers significantly dysregulated across all three neurodegenerative diseases (FDR < 0.05).
-- Both genes were consistently downregulated across AD, ALS, and PD cohorts.
+Running the pipeline generates:
+
+* Differential expression results
+* Transcriptomic meta-analysis results
+* Prioritized cross-disease oxidative stress biomarkers
+* Heatmaps
+* Volcano plots
+* Forest plots
+* Publication-ready figures
+* Publication-ready summary tables
+
+---
+
+## Reproducibility
+
+All analyses are performed using publicly available GEO datasets. Executing the analysis pipeline reproduces the processed results, figures, and tables presented in the accompanying manuscript.
+
+---
+
+## Citation
+
+If you use or adapt this workflow, please cite the associated manuscript. Citation details will be updated following publication.
+
+---
+
+## Author
+
+**Gil Williams Amana**
+
+
+GitHub: https://github.com/gilwilliamsga-design
