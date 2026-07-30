@@ -120,7 +120,6 @@ The workflow generates:
 * Transcriptomic meta-analysis results
 * Prioritized cross-disease oxidative stress biomarkers
 * Heatmaps
-* Volcano plots
 * Forest plots
 * Publication-ready figures
 * Publication-ready summary tables
