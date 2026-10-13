@@ -35,7 +35,7 @@ for (gse_id in all_gse_ids) {
 
   cat(gse_id, ": downloading ... ")
   tryCatch({
-    getGEO(gse_id, GSEMatrix = TRUE, destdir = RAW_DIR)
+    getGEO(gse_id, GSEMatrix = TRUE, destdir = RAW_DIR,\n           returnType = "ExpressionSet")
     cat("done\n")
   }, error = function(e) {
     cat("FAILED:", conditionMessage(e), "\n")
