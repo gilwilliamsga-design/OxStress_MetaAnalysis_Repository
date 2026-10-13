@@ -103,7 +103,7 @@ run_limma <- function(expr, group, covariate = NULL, coef = NULL) {
 
 # ── GSE5281 ───────────────────────────────────────────────────────────────────
 cat("GSE5281 (AD) ...\n")
-gse5281     <- getGEO("GSE5281", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
+gse5281     <- getGEO("GSE5281", GSEMatrix = TRUE, destdir = RAW_DIR)
 meta_5281   <- pData(gse5281[[1]])
 expr_5281   <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_5281.rds")))
 
@@ -132,7 +132,7 @@ save_csv(make_deg_table(results_5281), file.path(TABLE_DIR, "GSE5281_DEG.csv"))
 
 # ── GSE63061 ──────────────────────────────────────────────────────────────────
 cat("GSE63061 (AD) ...\n")
-gse63061    <- getGEO("GSE63061", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
+gse63061    <- getGEO("GSE63061", GSEMatrix = TRUE, destdir = RAW_DIR)
 meta_63061  <- pData(gse63061[[1]])
 expr_63061  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_63061.rds")))
 
@@ -151,7 +151,7 @@ save_csv(make_deg_table(results_63061), file.path(TABLE_DIR, "GSE63061_DEG.csv")
 
 # ── GSE26927 – AD subset ──────────────────────────────────────────────────────
 cat("GSE26927 (AD subset) ...\n")
-gse26927    <- getGEO("GSE26927", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
+gse26927    <- getGEO("GSE26927", GSEMatrix = TRUE, destdir = RAW_DIR)
 meta_26927  <- pData(gse26927[[1]])
 expr_26927  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_26927.rds")))
 
@@ -175,7 +175,7 @@ save_csv(make_deg_table(results_26927_AD),
 
 # ── GSE67196 ──────────────────────────────────────────────────────────────────
 cat("GSE67196 (ALS) ...\n")
-gse67196    <- getGEO("GSE67196", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
+gse67196    <- getGEO("GSE67196", GSEMatrix = TRUE, destdir = RAW_DIR)
 meta_67196  <- pData(gse67196[[1]])
 expr_67196  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_67196.rds")))
 
@@ -193,7 +193,7 @@ save_csv(make_deg_table(results_67196), file.path(TABLE_DIR, "GSE67196_DEG.csv")
 
 # ── GSE76220 ──────────────────────────────────────────────────────────────────
 cat("GSE76220 (ALS) ...\n")
-gse76220    <- getGEO("GSE76220", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
+gse76220    <- getGEO("GSE76220", GSEMatrix = TRUE, destdir = RAW_DIR)
 meta_76220  <- pData(gse76220[[1]])
 expr_76220  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_76220.rds")))
 
@@ -231,7 +231,7 @@ save_csv(make_deg_table(results_26927_ALS),
 
 # ── GSE6613 ───────────────────────────────────────────────────────────────────
 cat("GSE6613 (PD) ...\n")
-gse6613    <- getGEO("GSE6613", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
+gse6613    <- getGEO("GSE6613", GSEMatrix = TRUE, destdir = RAW_DIR)
 meta_6613  <- pData(gse6613[[1]])
 expr_6613  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_6613.rds")))
 
@@ -255,7 +255,7 @@ save_csv(make_deg_table(results_6613), file.path(TABLE_DIR, "GSE6613_DEG.csv"))
 
 # ── GSE8397 ───────────────────────────────────────────────────────────────────
 cat("GSE8397 (PD) ...\n")
-gse8397    <- getGEO("GSE8397", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
+gse8397    <- getGEO("GSE8397", GSEMatrix = TRUE, destdir = RAW_DIR)
 meta_8397  <- pData(gse8397[[1]])
 expr_8397  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_8397.rds")))
 
