@@ -68,7 +68,7 @@ run_limma <- function(expr, group, covariate = NULL, coef = NULL) {
 
 # ── GSE5281 ───────────────────────────────────────────────────────────────────
 cat("GSE5281 (AD) ...\n")
-gse5281     <- getGEO("GSE5281", GSEMatrix = TRUE, destdir = RAW_DIR)
+gse5281     <- getGEO("GSE5281", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
 meta_5281   <- pData(gse5281[[1]])
 expr_5281   <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_5281.rds")))
 
@@ -97,7 +97,7 @@ save_csv(make_deg_table(results_5281), file.path(TABLE_DIR, "GSE5281_DEG.csv"))
 
 # ── GSE63061 ──────────────────────────────────────────────────────────────────
 cat("GSE63061 (AD) ...\n")
-gse63061    <- getGEO("GSE63061", GSEMatrix = TRUE, destdir = RAW_DIR)
+gse63061    <- getGEO("GSE63061", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
 meta_63061  <- pData(gse63061[[1]])
 expr_63061  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_63061.rds")))
 
@@ -116,7 +116,7 @@ save_csv(make_deg_table(results_63061), file.path(TABLE_DIR, "GSE63061_DEG.csv")
 
 # ── GSE26927 – AD subset ──────────────────────────────────────────────────────
 cat("GSE26927 (AD subset) ...\n")
-gse26927    <- getGEO("GSE26927", GSEMatrix = TRUE, destdir = RAW_DIR)
+gse26927    <- getGEO("GSE26927", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
 meta_26927  <- pData(gse26927[[1]])
 expr_26927  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_26927.rds")))
 
@@ -124,7 +124,7 @@ meta_26927_AD <- meta_26927[meta_26927[["disease:ch1"]] == "Alzheimer's disease"
 meta_26927_AD$Group <- ifelse(grepl("Disease", meta_26927_AD$title), "AD", "Control")
 
 expr_26927_AD <- expr_26927[, rownames(meta_26927_AD), drop = FALSE]
-expr_26927_AD <- log2(expr_26927_AD + 1)
+
 
 group_26927_AD <- factor(meta_26927_AD$Group, levels = c("Control", "AD"))
 results_26927_AD <- run_limma(expr_26927_AD, group_26927_AD)
@@ -140,7 +140,7 @@ save_csv(make_deg_table(results_26927_AD),
 
 # ── GSE67196 ──────────────────────────────────────────────────────────────────
 cat("GSE67196 (ALS) ...\n")
-gse67196    <- getGEO("GSE67196", GSEMatrix = TRUE, destdir = RAW_DIR)
+gse67196    <- getGEO("GSE67196", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
 meta_67196  <- pData(gse67196[[1]])
 expr_67196  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_67196.rds")))
 
@@ -158,7 +158,7 @@ save_csv(make_deg_table(results_67196), file.path(TABLE_DIR, "GSE67196_DEG.csv")
 
 # ── GSE76220 ──────────────────────────────────────────────────────────────────
 cat("GSE76220 (ALS) ...\n")
-gse76220    <- getGEO("GSE76220", GSEMatrix = TRUE, destdir = RAW_DIR)
+gse76220    <- getGEO("GSE76220", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
 meta_76220  <- pData(gse76220[[1]])
 expr_76220  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_76220.rds")))
 
@@ -167,7 +167,7 @@ meta_76220$Group <- factor(
   levels = c("Control", "ALS"))
 
 results_76220 <- run_limma(expr_76220, meta_76220$Group)
-# Flip sign: reference was ALS (Check column label from your session)
+# Direction must be verified from the GEO sample annotations before interpreting logFC.
 cat("  Significant genes (FDR<0.05):", sum(results_76220$adj.P.Val < ALPHA), "\n")
 
 save_rds(results_76220, file.path(PROCESSED_DIR, "results_76220.rds"))
@@ -180,7 +180,7 @@ meta_26927_ALS <- meta_26927[meta_26927[["disease:ch1"]] ==
 meta_26927_ALS$Group <- ifelse(grepl("Disease", meta_26927_ALS$title),
                                "ALS", "Control")
 expr_26927_ALS <- expr_26927[, rownames(meta_26927_ALS), drop = FALSE]
-expr_26927_ALS <- log2(expr_26927_ALS + 1)
+
 
 group_26927_ALS <- factor(meta_26927_ALS$Group, levels = c("Control", "ALS"))
 results_26927_ALS <- run_limma(expr_26927_ALS, group_26927_ALS)
@@ -196,7 +196,7 @@ save_csv(make_deg_table(results_26927_ALS),
 
 # ── GSE6613 ───────────────────────────────────────────────────────────────────
 cat("GSE6613 (PD) ...\n")
-gse6613    <- getGEO("GSE6613", GSEMatrix = TRUE, destdir = RAW_DIR)
+gse6613    <- getGEO("GSE6613", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
 meta_6613  <- pData(gse6613[[1]])
 expr_6613  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_6613.rds")))
 
@@ -205,7 +205,7 @@ keep_6613 <- meta_6613$characteristics_ch1 %in%
              c("Parkinson's disease", "healthy control")
 meta_6613_bal <- meta_6613[keep_6613, ]
 expr_6613_bal <- expr_6613[, rownames(meta_6613_bal), drop = FALSE]
-expr_6613_log <- log2(expr_6613_bal + 1)
+expr_6613_log <- expr_6613_bal  # already transformed by preprocessing; avoid double-log
 
 group_6613 <- factor(
   ifelse(meta_6613_bal$characteristics_ch1 == "Parkinson's disease",
@@ -220,7 +220,7 @@ save_csv(make_deg_table(results_6613), file.path(TABLE_DIR, "GSE6613_DEG.csv"))
 
 # ── GSE8397 ───────────────────────────────────────────────────────────────────
 cat("GSE8397 (PD) ...\n")
-gse8397    <- getGEO("GSE8397", GSEMatrix = TRUE, destdir = RAW_DIR)
+gse8397    <- getGEO("GSE8397", GSEMatrix = TRUE, destdir = RAW_DIR, returnType = "ExpressionSet")
 meta_8397  <- pData(gse8397[[1]])
 expr_8397  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_8397.rds")))
 
@@ -241,7 +241,7 @@ meta_26927_PD <- meta_26927[meta_26927[["disease:ch1"]] == "Parkinson's disease"
 meta_26927_PD$Group <- ifelse(grepl("Disease", meta_26927_PD$title),
                               "PD", "Control")
 expr_26927_PD <- expr_26927[, rownames(meta_26927_PD), drop = FALSE]
-expr_26927_PD <- log2(expr_26927_PD + 1)
+
 
 group_26927_PD <- factor(meta_26927_PD$Group, levels = c("Control", "PD"))
 results_26927_PD <- run_limma(expr_26927_PD, group_26927_PD)
