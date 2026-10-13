@@ -38,7 +38,7 @@ microarray_ids <- c("GSE5281", "GSE63061", "GSE6613", "GSE8397",
 
 process_microarray <- function(gse_id) {
   cat(gse_id, ": loading ... ")
-  gse  <- getGEO(gse_id, GSEMatrix = TRUE, destdir = RAW_DIR)
+  gse  <- getGEO(gse_id, GSEMatrix = TRUE, destdir = RAW_DIR,\n                 returnType = "ExpressionSet")
   obj  <- gse[[1]]
   expr <- extract_antioxidants(obj, genes)
   expr <- maybe_log2(expr)
