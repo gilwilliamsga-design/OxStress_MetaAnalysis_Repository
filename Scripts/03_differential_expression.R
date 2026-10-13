@@ -42,6 +42,41 @@ subset_common <- function(mat) mat[common_genes, , drop = FALSE]
 #' @param covariate Optional named list of additional covariates (e.g. region).
 #' @param coef      Coefficient to extract; defaults to the case level.
 run_limma <- function(expr, group, covariate = NULL, coef = NULL) {
+  expr <- as.matrix(expr)
+  storage.mode(expr) <- "numeric"
+
+  if (ncol(expr) != length(group)) {
+    stop("Expression columns (", ncol(expr),
+         ") do not match group labels (", length(group), ").")
+  }
+  if (nrow(expr) < 1L || ncol(expr) < 2L) {
+    stop("Expression matrix must contain at least one gene and two samples.")
+  }
+  if (any(!is.finite(expr))) {
+    stop("Expression matrix contains NA, NaN, or infinite values.")
+  }
+
+  group <- droplevels(factor(group))
+  if (anyNA(group) || nlevels(group) != 2L) {
+    stop("Differential expression requires exactly two observed groups; found: ",
+         paste(levels(group), collapse = ", "))
+  }
+  if (any(table(group) < 2L)) {
+    stop("Each group must contain at least two samples for this limma workflow.")
+  }
+
+  if (!is.null(covariate)) {
+    if (is.null(names(covariate)) || any(!nzchar(names(covariate)))) {
+      stop("Covariates must be supplied as a named list.")
+    }
+    if (any(vapply(covariate, length, integer(1)) != ncol(expr))) {
+      stop("Each covariate must have one value per expression sample.")
+    }
+    if (any(vapply(covariate, function(x) anyNA(x), logical(1)))) {
+      stop("Covariates contain missing values.")
+    }
+  }
+
   df_design           <- data.frame(Group = group)
   formula_str         <- "~ Group"
 
@@ -124,7 +159,7 @@ meta_26927_AD <- meta_26927[meta_26927[["disease:ch1"]] == "Alzheimer's disease"
 meta_26927_AD$Group <- ifelse(grepl("Disease", meta_26927_AD$title), "AD", "Control")
 
 expr_26927_AD <- expr_26927[, rownames(meta_26927_AD), drop = FALSE]
-expr_26927_AD <- log2(expr_26927_AD + 1)
+
 
 group_26927_AD <- factor(meta_26927_AD$Group, levels = c("Control", "AD"))
 results_26927_AD <- run_limma(expr_26927_AD, group_26927_AD)
@@ -167,7 +202,7 @@ meta_76220$Group <- factor(
   levels = c("Control", "ALS"))
 
 results_76220 <- run_limma(expr_76220, meta_76220$Group)
-# Flip sign: reference was ALS (Check column label from your session)
+# Direction must be verified from the GEO sample annotations before interpreting logFC.
 cat("  Significant genes (FDR<0.05):", sum(results_76220$adj.P.Val < ALPHA), "\n")
 
 save_rds(results_76220, file.path(PROCESSED_DIR, "results_76220.rds"))
@@ -180,7 +215,7 @@ meta_26927_ALS <- meta_26927[meta_26927[["disease:ch1"]] ==
 meta_26927_ALS$Group <- ifelse(grepl("Disease", meta_26927_ALS$title),
                                "ALS", "Control")
 expr_26927_ALS <- expr_26927[, rownames(meta_26927_ALS), drop = FALSE]
-expr_26927_ALS <- log2(expr_26927_ALS + 1)
+
 
 group_26927_ALS <- factor(meta_26927_ALS$Group, levels = c("Control", "ALS"))
 results_26927_ALS <- run_limma(expr_26927_ALS, group_26927_ALS)
@@ -205,7 +240,7 @@ keep_6613 <- meta_6613$characteristics_ch1 %in%
              c("Parkinson's disease", "healthy control")
 meta_6613_bal <- meta_6613[keep_6613, ]
 expr_6613_bal <- expr_6613[, rownames(meta_6613_bal), drop = FALSE]
-expr_6613_log <- log2(expr_6613_bal + 1)
+expr_6613_log <- expr_6613_bal  # already transformed by preprocessing; avoid double-log
 
 group_6613 <- factor(
   ifelse(meta_6613_bal$characteristics_ch1 == "Parkinson's disease",
@@ -241,7 +276,7 @@ meta_26927_PD <- meta_26927[meta_26927[["disease:ch1"]] == "Parkinson's disease"
 meta_26927_PD$Group <- ifelse(grepl("Disease", meta_26927_PD$title),
                               "PD", "Control")
 expr_26927_PD <- expr_26927[, rownames(meta_26927_PD), drop = FALSE]
-expr_26927_PD <- log2(expr_26927_PD + 1)
+
 
 group_26927_PD <- factor(meta_26927_PD$Group, levels = c("Control", "PD"))
 results_26927_PD <- run_limma(expr_26927_PD, group_26927_PD)

@@ -10,7 +10,7 @@ Oxidative stress is a central mechanism implicated in the pathogenesis of Alzhei
 
 This repository contains the complete R-based computational workflow developed for the transcriptomic meta-analysis accompanying the manuscript **"Cross-Disease Oxidative Stress Biomarker Discovery in Neurodegenerative Diseases."** The pipeline integrates publicly available transcriptomic datasets from the NCBI Gene Expression Omnibus (GEO), performs differential expression analyses within individual studies, combines evidence through meta-analysis, and identifies oxidative stress-related genes that are consistently altered across AD, PD, and ALS.
 
-All analyses, figures, and tables reported in the manuscript can be reproduced using the scripts provided in this repository.
+The scripts describe the intended analysis workflow. Reproducibility should be considered **unverified until the pipeline has been run from a clean R installation and the resulting outputs and sample classifications have been independently checked**. A successful script run alone does not establish that the biological comparisons or meta-analysis assumptions are valid.
 
 ---
 
@@ -101,14 +101,13 @@ Clone the repository:
 git clone https://github.com/gilwilliamsga-design/OxStress_MetaAnalysis_Repository.git
 ```
 
-Open the project in R or RStudio and execute:
+Open the repository root in R or RStudio. Install the required R and Bioconductor packages first (including GEOquery, Biobase, limma, dplyr, tibble, tidyr, ggplot2, grid, and VennDiagram), then run:
 
 ```r
-source("Scripts/00_config.R")
 source("Scripts/00_run_all.R")
 ```
 
-Executing the pipeline reproduces the processed results, publication-ready figures, and summary tables generated for the accompanying manuscript.
+**Important validation note:** the full workflow has not yet been verified end-to-end in a clean environment. Dataset-specific case/control labels, expression transformations, and the assumptions of the cross-study Stouffer analysis must be checked against each GEO study's sample annotations before interpreting candidate biomarkers as findings. The scripts include input checks intended to stop some invalid comparisons rather than silently continue.
 
 ---
 

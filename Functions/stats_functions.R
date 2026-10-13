@@ -20,10 +20,19 @@
 meta_stouffer <- function(logfcs, pvals) {
   if (length(logfcs) != length(pvals))
     stop("logfcs and pvals must be the same length.")
+  if (length(logfcs) == 0L)
+    stop("At least one study is required.")
+  if (any(!is.finite(logfcs)) || any(!is.finite(pvals)))
+    stop("logFC and p-values must be finite; missing study results are not silently dropped.")
+  if (any(pvals < 0 | pvals > 1))
+    stop("P-values must be between 0 and 1.")
 
+  # Avoid infinite Z-scores when software reports p = 0 due to numerical
+  # underflow. This is a numerical safeguard, not additional evidence.
+  p_safe <- pmax(pvals, .Machine$double.xmin)
   signs  <- sign(logfcs)
-  z      <- qnorm(1 - pvals / 2) * signs          # signed Z per study
-  z_meta <- sum(z) / sqrt(length(z))               # combined Z
+  z      <- qnorm(1 - p_safe / 2) * signs
+  z_meta <- sum(z) / sqrt(length(z))
   p_meta <- 2 * pnorm(abs(z_meta), lower.tail = FALSE)
   lfc    <- mean(logfcs)
 
