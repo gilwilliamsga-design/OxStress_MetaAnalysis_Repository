@@ -42,6 +42,41 @@ subset_common <- function(mat) mat[common_genes, , drop = FALSE]
 #' @param covariate Optional named list of additional covariates (e.g. region).
 #' @param coef      Coefficient to extract; defaults to the case level.
 run_limma <- function(expr, group, covariate = NULL, coef = NULL) {
+  expr <- as.matrix(expr)
+  storage.mode(expr) <- "numeric"
+
+  if (ncol(expr) != length(group)) {
+    stop("Expression columns (", ncol(expr),
+         ") do not match group labels (", length(group), ").")
+  }
+  if (nrow(expr) < 1L || ncol(expr) < 2L) {
+    stop("Expression matrix must contain at least one gene and two samples.")
+  }
+  if (any(!is.finite(expr))) {
+    stop("Expression matrix contains NA, NaN, or infinite values.")
+  }
+
+  group <- droplevels(factor(group))
+  if (anyNA(group) || nlevels(group) != 2L) {
+    stop("Differential expression requires exactly two observed groups; found: ",
+         paste(levels(group), collapse = ", "))
+  }
+  if (any(table(group) < 2L)) {
+    stop("Each group must contain at least two samples for this limma workflow.")
+  }
+
+  if (!is.null(covariate)) {
+    if (is.null(names(covariate)) || any(!nzchar(names(covariate)))) {
+      stop("Covariates must be supplied as a named list.")
+    }
+    if (any(vapply(covariate, length, integer(1)) != ncol(expr))) {
+      stop("Each covariate must have one value per expression sample.")
+    }
+    if (any(vapply(covariate, function(x) anyNA(x), logical(1)))) {
+      stop("Covariates contain missing values.")
+    }
+  }
+
   df_design           <- data.frame(Group = group)
   formula_str         <- "~ Group"
 
