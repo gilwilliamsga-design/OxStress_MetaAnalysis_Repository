@@ -30,15 +30,18 @@ AD_results  <- load_rds(file.path(PROCESSED_DIR, "AD_results.rds"))
 ALS_results <- load_rds(file.path(PROCESSED_DIR, "ALS_results.rds"))
 PD_results  <- load_rds(file.path(PROCESSED_DIR, "PD_results.rds"))
 
+
 # ── Build cross-disease summary table ────────────────────────────────────────
 cross_disease <- AD_results %>%
-  select(Gene, AD_logFC = Meta_logFC, AD_FDR = FDR) %>%
-  left_join(
-    ALS_results %>% select(Gene, ALS_logFC = Meta_logFC, ALS_FDR = FDR),
+  dplyr::select(Gene, AD_logFC = Meta_logFC, AD_FDR = FDR) %>%
+  full_join(
+    ALS_results %>%
+      dplyr::select(Gene, ALS_logFC = Meta_logFC, ALS_FDR = FDR),
     by = "Gene"
   ) %>%
-  left_join(
-    PD_results %>% select(Gene, PD_logFC = Meta_logFC, PD_FDR = FDR),
+  full_join(
+    PD_results %>%
+      dplyr::select(Gene, PD_logFC = Meta_logFC, PD_FDR = FDR),
     by = "Gene"
   ) %>%
   mutate(

@@ -10,7 +10,7 @@
 #             - Biomarker scoring
 ###############################################################################
 
-# ── Stouffer weighted meta-analysis ──────────────────────────────────────────
+# ── Unweighted Stouffer meta-analysis ───────────────────────────────────────
 #' Combine log-fold-changes and p-values from multiple studies using the
 #' sign-aware Stouffer Z-score method.
 #'
@@ -31,9 +31,10 @@ meta_stouffer <- function(logfcs, pvals) {
   # underflow. This is a numerical safeguard, not additional evidence.
   p_safe <- pmax(pvals, .Machine$double.xmin)
   signs  <- sign(logfcs)
-  z      <- qnorm(1 - p_safe / 2) * signs
+  z      <- qnorm(p_safe / 2, lower.tail = FALSE) * signs
   z_meta <- sum(z) / sqrt(length(z))
   p_meta <- 2 * pnorm(abs(z_meta), lower.tail = FALSE)
+  # Descriptive summary: arithmetic mean of study-level logFCs (not a pooled effect).
   lfc    <- mean(logfcs)
 
   c(Meta_logFC = lfc, Meta_Z = z_meta, Meta_P = p_meta)

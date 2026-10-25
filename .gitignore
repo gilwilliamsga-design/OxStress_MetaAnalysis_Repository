@@ -20,3 +20,11 @@ Results/QC/
 
 # Logs
 Logs/*.log
+
+# Local audit artifacts
+audit_backup_*/
+pipeline_audit.log
+VennDiagram.*.log
+
+# Generated R session information
+Results/SessionInfo.txt

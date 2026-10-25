@@ -20,12 +20,28 @@ source("Functions/io_functions.R")
 source("Functions/expression_functions.R")
 source("Functions/stats_functions.R")
 
+# Check required packages before running the analysis
+required_packages <- c("GEOquery", "Biobase", "limma", "edgeR",
+                       "dplyr", "tibble")
+
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, logical(1),
+          quietly = TRUE)
+]
+
+if (length(missing_packages) > 0) {
+  stop(
+    "Missing required packages: ",
+    paste(missing_packages, collapse = ", "),
+    ". Install them before running this script."
+  )
+}
+
 library(GEOquery)
 library(Biobase)
 library(limma)
 library(dplyr)
 library(tibble)
-
 write_log("Starting 03_differential_expression.R")
 
 cat("\n=== DIFFERENTIAL EXPRESSION ANALYSIS ===\n\n")
@@ -112,15 +128,18 @@ meta_5281$Disease <- ifelse(grepl("Alzheimer", meta_5281[["Disease State:ch1"]],
 
 # Balance regions
 keep_regions <- c("Entorhinal Cortex", "Primary Visual Cortex", "Superior Frontal Gyrus")
-meta_5281$RegionName <- trimws(as.character(meta_5281[["Organ Region:ch1"]]))
+meta_5281$RegionName <- as.character(meta_5281[["Organ Region:ch1"]])
+meta_5281$RegionName <- gsub("\u00A0", " ", meta_5281$RegionName, fixed = TRUE)
+meta_5281$RegionName <- trimws(meta_5281$RegionName)
 keep_idx <- meta_5281$RegionName %in% keep_regions
 
 meta_5281_bal <- meta_5281[keep_idx, ]
 expr_5281_bal <- expr_5281[, keep_idx, drop = FALSE]
 
-group_5281 <- factor(ifelse(grepl("Alzheimer", meta_5281_bal$Disease,
-                                  ignore.case = TRUE), "AD", "Control"),
-                     levels = c("Control", "AD"))
+group_5281 <- factor(
+  meta_5281_bal$Disease,
+  levels = c("Control", "AD")
+)
 region_5281 <- factor(meta_5281_bal$RegionName)
 
 results_5281 <- run_limma(expr_5281_bal, group_5281,
@@ -174,19 +193,117 @@ save_csv(make_deg_table(results_26927_AD),
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # ── GSE67196 ──────────────────────────────────────────────────────────────────
-cat("GSE67196 (ALS) ...\n")
-gse67196    <- getGEO("GSE67196", GSEMatrix = TRUE, destdir = RAW_DIR)
-meta_67196  <- pData(gse67196[[1]])
-expr_67196  <- subset_common(load_rds(file.path(PROCESSED_DIR, "expr_67196.rds")))
+cat("GSE67196 (ALS) — edgeR + limma-voom, frontal cortex only...\n")
 
-meta_67196$Group <- factor(
-  ifelse(meta_67196[["genotype:ch1"]] == "Healthy", "Control", "ALS"),
-  levels = c("Control", "ALS"))
-tissue_67196 <- factor(meta_67196[["tissue:ch1"]])
+# Load GEO metadata
+gse67196 <- getGEO("GSE67196", GSEMatrix = TRUE, destdir = RAW_DIR)
+meta_67196 <- pData(gse67196[[1]])
 
-results_67196 <- run_limma(expr_67196, meta_67196$Group,
-                           covariate = list(Tissue = tissue_67196))
-cat("  Significant genes (FDR<0.05):", sum(results_67196$adj.P.Val < ALPHA), "\n")
+# Load original raw counts
+count_file <- file.path(
+  RAW_DIR, "GSE67196",
+  "GSE67196_Petrucelli2015_ALS_genes.rawcount.txt.gz"
+)
+als_raw <- read.delim(
+  count_file, check.names = FALSE, stringsAsFactors = FALSE
+)
+
+# Select frontal-cortex count columns
+fcx_samples <- grep("_fcx$", names(als_raw), value = TRUE)
+if (length(fcx_samples) == 0L) {
+  stop("No frontal-cortex (_fcx) columns found.")
+}
+
+# Clean gene IDs and sum duplicate IDs
+gene_ids <- trimws(as.character(als_raw$GeneID))
+valid <- !is.na(gene_ids) & nzchar(gene_ids)
+
+fcx_counts <- as.matrix(als_raw[valid, fcx_samples, drop = FALSE])
+gene_ids <- gene_ids[valid]
+fcx_counts <- rowsum(fcx_counts, group = gene_ids, reorder = FALSE)
+storage.mode(fcx_counts) <- "integer"
+
+# Select frontal-cortex metadata and match by numeric sample ID
+fcx_meta <- meta_67196[
+  grepl("_FCX$", meta_67196$title, ignore.case = TRUE),
+  ,
+  drop = FALSE
+]
+
+count_ids <- as.integer(sub("^ALS", "", sub("_fcx$", "", colnames(fcx_counts))))
+geo_ids <- as.integer(sub("_FCX$", "", fcx_meta$title, ignore.case = TRUE))
+
+match_idx <- match(count_ids, geo_ids)
+if (anyNA(match_idx) || anyDuplicated(geo_ids)) {
+  stop("GSE67196 sample matching failed; check count columns and GEO metadata.")
+}
+
+fcx_meta <- fcx_meta[match_idx, , drop = FALSE]
+rownames(fcx_meta) <- colnames(fcx_counts)
+
+# Define Control vs ALS; Control is the reference group
+genotype <- trimws(as.character(fcx_meta[["genotype:ch1"]]))
+allowed_genotypes <- c("Healthy", "sALS", "c9ALS")
+
+if (anyNA(genotype) || any(!genotype %in% allowed_genotypes)) {
+  stop("Unexpected or missing GSE67196 genotype labels: ",
+       paste(unique(genotype[is.na(genotype) |
+         !genotype %in% allowed_genotypes]), collapse = ", "))
+}
+
+fcx_meta$Group <- factor(
+  ifelse(genotype == "Healthy", "Control", "ALS"),
+  levels = c("Control", "ALS")
+)
+
+if (anyNA(fcx_meta$Group) || length(unique(fcx_meta$Group)) != 2L) {
+  stop("GSE67196 must contain both Control and ALS samples.")
+}
+stopifnot(identical(colnames(fcx_counts), rownames(fcx_meta)))
+
+# edgeR: filter raw counts and normalize library sizes
+y <- edgeR::DGEList(counts = fcx_counts, group = fcx_meta$Group)
+keep <- edgeR::filterByExpr(y, group = fcx_meta$Group)
+y <- y[keep, , keep.lib.sizes = FALSE]
+y <- edgeR::calcNormFactors(y, method = "TMM")
+
+# limma-voom differential expression
+design <- stats::model.matrix(~ Group, data = fcx_meta)
+v <- limma::voom(y, design, plot = FALSE)
+fit <- limma::lmFit(v, design)
+fit <- limma::eBayes(fit)
+
+results_all <- limma::topTable(
+  fit, coef = "GroupALS", number = Inf, sort.by = "none"
+)
+results_all$Gene <- rownames(results_all)
+
+# Retain the 18 genes used by the meta-analysis
+common_genes <- c(
+  "CAT", "GPX1", "GPX3", "GPX4", "GSR", "GSTM1", "GSTM3", "GSTM4",
+  "GSTP1", "GSTT1", "KEAP1", "NRF1", "PRDX1", "PRDX2", "PRDX3",
+  "PRDX4", "SOD1", "TFAM"
+)
+
+results_67196 <- results_all[
+  results_all$Gene %in% common_genes,
+  c("Gene", "logFC", "P.Value", "adj.P.Val"),
+  drop = FALSE
+]
+
+# Preserve common-gene ordering
+results_67196 <- results_67196[
+  match(common_genes, results_67196$Gene),
+  ,
+  drop = FALSE
+]
+results_67196 <- results_67196[!is.na(results_67196$Gene), , drop = FALSE]
+
+cat("  Frontal-cortex samples:", ncol(fcx_counts), "\n")
+cat("  Genes retained after filtering:", nrow(y), "\n")
+cat("  Oxidative-stress genes found:", nrow(results_67196), "\n")
+cat("  Significant genes (FDR<0.05):",
+    sum(results_67196$adj.P.Val < ALPHA, na.rm = TRUE), "\n")
 
 save_rds(results_67196, file.path(PROCESSED_DIR, "results_67196.rds"))
 save_csv(make_deg_table(results_67196), file.path(TABLE_DIR, "GSE67196_DEG.csv"))
