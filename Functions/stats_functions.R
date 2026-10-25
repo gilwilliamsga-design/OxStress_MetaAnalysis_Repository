@@ -10,7 +10,7 @@
 #             - Biomarker scoring
 ###############################################################################
 
-# ── Stouffer weighted meta-analysis ──────────────────────────────────────────
+# ── Unweighted Stouffer meta-analysis ───────────────────────────────────────
 #' Combine log-fold-changes and p-values from multiple studies using the
 #' sign-aware Stouffer Z-score method.
 #'
@@ -20,11 +20,21 @@
 meta_stouffer <- function(logfcs, pvals) {
   if (length(logfcs) != length(pvals))
     stop("logfcs and pvals must be the same length.")
+  if (length(logfcs) == 0L)
+    stop("At least one study is required.")
+  if (any(!is.finite(logfcs)) || any(!is.finite(pvals)))
+    stop("logFC and p-values must be finite; missing study results are not silently dropped.")
+  if (any(pvals < 0 | pvals > 1))
+    stop("P-values must be between 0 and 1.")
 
+  # Avoid infinite Z-scores when software reports p = 0 due to numerical
+  # underflow. This is a numerical safeguard, not additional evidence.
+  p_safe <- pmax(pvals, .Machine$double.xmin)
   signs  <- sign(logfcs)
-  z      <- qnorm(1 - pvals / 2) * signs          # signed Z per study
-  z_meta <- sum(z) / sqrt(length(z))               # combined Z
+  z      <- qnorm(p_safe / 2, lower.tail = FALSE) * signs
+  z_meta <- sum(z) / sqrt(length(z))
   p_meta <- 2 * pnorm(abs(z_meta), lower.tail = FALSE)
+  # Descriptive summary: arithmetic mean of study-level logFCs (not a pooled effect).
   lfc    <- mean(logfcs)
 
   c(Meta_logFC = lfc, Meta_Z = z_meta, Meta_P = p_meta)

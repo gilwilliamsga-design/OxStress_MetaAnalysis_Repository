@@ -96,7 +96,7 @@ draw_figure1 <- function() {
   diseases <- list(
     list(cx = 0.18, fill = COL$als,
          title = "Amyotrophic\nLateral Sclerosis",
-         body  = "GSE67196 | GSE76220\nGSE26927 (ALS subset)"),
+         body  = "GSE67196\nGSE26927 (ALS subset)"),
     list(cx = 0.50, fill = COL$ad,
          title = "Alzheimer's\nDisease",
          body  = "GSE5281 | GSE63061\nGSE26927 (AD subset)"),
@@ -239,16 +239,16 @@ cat("Figure 4: Forest plots ...\n")
 build_forest_df <- function(gene) {
   data.frame(
     Dataset = c("GSE5281","GSE63061","GSE26927_AD",
-                "GSE67196","GSE76220","GSE26927_ALS",
+                "GSE67196","GSE26927_ALS",
                 "GSE6613","GSE8397","GSE26927_PD",
                 "Meta AD","Meta ALS","Meta PD"),
-    Disease = c("AD","AD","AD","ALS","ALS","ALS","PD","PD","PD","AD","ALS","PD"),
+    Disease = c("AD","AD","AD","ALS","ALS","PD","PD","PD","AD","ALS","PD"),
     logFC = c(
       AD_meta[AD_meta$Gene == gene, "logFC_5281"],
       AD_meta[AD_meta$Gene == gene, "logFC_63061"],
       AD_meta[AD_meta$Gene == gene, "logFC_26927"],
       ALS_meta[ALS_meta$Gene == gene, "logFC_67196"],
-      ALS_meta[ALS_meta$Gene == gene, "logFC_76220"],
+      # GSE76220 is excluded from the primary ALS meta-analysis.
       ALS_meta[ALS_meta$Gene == gene, "logFC_26927"],
       PD_meta[PD_meta$Gene == gene, "logFC_6613"],
       PD_meta[PD_meta$Gene == gene, "logFC_8397"],
@@ -257,7 +257,7 @@ build_forest_df <- function(gene) {
       ALS_results[ALS_results$Gene == gene, "Meta_logFC"],
       PD_results[PD_results$Gene == gene, "Meta_logFC"]
     ),
-    IsMeta = c(rep(FALSE, 9), rep(TRUE, 3))
+    IsMeta = c(rep(FALSE, 8), rep(TRUE, 3))
   )
 }
 

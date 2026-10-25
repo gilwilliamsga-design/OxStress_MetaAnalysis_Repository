@@ -66,19 +66,46 @@ print(AD_results[AD_results$FDR < ALPHA, ])
 save_rds(AD_results,  file.path(PROCESSED_DIR,  "AD_results.rds"))
 save_csv(AD_results,  file.path(META_DIR, "AD_meta_results.csv"))
 
-# ── ALS meta ─────────────────────────────────────────────────────────────────
-ALS_meta <- merge_studies(results_67196, results_76220, results_26927_ALS,
-                          "67196", "76220", "26927")
+
+# ── ALS meta: primary analysis ────────────────────────────────────────────────
+# GSE76220 is excluded from the primary analysis pending verification of its
+# supplementary sample IDs against the GEO metadata.
+
+ALS_results_67196 <- results_67196 %>%
+  dplyr::select(Gene, logFC, P.Value)
+
+ALS_results_26927 <- results_26927_ALS
+if (!"Gene" %in% colnames(ALS_results_26927)) {
+  ALS_results_26927 <- tibble::rownames_to_column(
+    as.data.frame(ALS_results_26927), var = "Gene"
+  )
+}
+ALS_results_26927 <- ALS_results_26927 %>%
+  dplyr::select(Gene, logFC, P.Value)
+
+ALS_meta <- merge(
+  ALS_results_67196,
+  ALS_results_26927,
+  by = "Gene",
+  suffixes = c("_67196", "_26927")
+)
+
 save_rds(ALS_meta, file.path(PROCESSED_DIR, "ALS_meta.rds"))
 
-ALS_results <- run_meta_analysis(ALS_meta,
-                                 lfc_cols  = c("logFC_67196", "logFC_76220", "logFC_26927"),
-                                 pval_cols = c("P_67196",     "P_76220",     "P_26927"))
-cat("ALS:", nrow(ALS_results[ALS_results$FDR < ALPHA, ]),
-    "significant gene(s) at FDR <", ALPHA, "\n")
+ALS_results <- run_meta_analysis(
+  ALS_meta,
+  lfc_cols = c("logFC_67196", "logFC_26927"),
+  pval_cols = c("P.Value_67196", "P.Value_26927")
+)
+
+cat(
+  "ALS primary analysis (2 studies): ",
+  sum(ALS_results$FDR < ALPHA, na.rm = TRUE),
+  " significant gene(s) at FDR <", ALPHA, "\n"
+)
 print(ALS_results[ALS_results$FDR < ALPHA, ])
 
-save_rds(ALS_results, file.path(PROCESSED_DIR,  "ALS_results.rds"))
+save_rds(ALS_results, file.path(PROCESSED_DIR, "ALS_results.rds"))
 save_csv(ALS_results, file.path(META_DIR, "ALS_meta_results.csv"))
 
 # ── PD meta ──────────────────────────────────────────────────────────────────
